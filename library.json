@@ -1,0 +1,20 @@
+{
+  "name": "circuit_kit_library",
+  "version": "0.0.1",
+  "description": "Ozobot circuit kit library",
+  "keywords": "Ozobot, circuit kit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ozobot/circuit_kit_library"
+  },
+  "authors": [
+    {
+      "name": "opilat",
+      "email": "ondrej.pilat@ozobot.com"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/ozobot/circuit_kit_library",
+  "frameworks": "*",
+  "platforms": "*"
+}
