@@ -1,0 +1,45 @@
+########################################
+## CLASS
+########################################
+BaseSensor	KEYWORD1
+GenericSensor	KEYWORD1
+DisplaySensor	KEYWORD1
+AnalogSensor	KEYWORD1
+
+########################################
+## FUNCTIONS
+########################################
+ToString	KEYWORD2
+IsValid	KEYWORD2
+Length	KEYWORD2
+Init	KEYWORD2
+CommunicateWith	KEYWORD2
+GetSensorDescription	KEYWORD2
+
+########################################
+## STRUCTURES
+########################################
+GPIODescription	KEYWORD3
+Description	KEYWORD3
+SensorDescription	KEYWORD3
+
+########################################
+## CONSTANTS
+########################################
+SensorLeft	LITERAL1
+SensorFront	LITERAL1
+SensorRight	LITERAL1
+SensorTop1	LITERAL1
+SensorTop2	LITERAL1
+HMI	LITERAL1
+SensorLine	LITERAL1
+SensorBattery	LITERAL1
+SensorsAll	LITERAL1
+
+########################################
+## DATA TYPES
+########################################
+PinMode	LITERAL2
+Direction	LITERAL2
+Pull	LITERAL2
+DescriptionTypes	LITERAL2

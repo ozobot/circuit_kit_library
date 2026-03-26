@@ -2,45 +2,64 @@
 #define OZOBOT_SENSORS_H
 
 #include <string>
+#include <memory>
 
 #include "Arduino.h"
 
+namespace ozobot::circuit_kit {
+
 class BaseSensor {
 public:
-  BaseSensor(uint8_t id) : id(id) {};
-  const uint8_t id;
-  static constexpr const uint8_t sharedInterrupt = D20;
+  BaseSensor(char const * name, uint8_t id) : name(name), id(id) {};
+  char const * const name;
+  uint8_t const id;
+  static constexpr uint8_t const sharedInterrupt = D20;
 };
 
 class GenericSensor : public BaseSensor {
 public:
-  GenericSensor(uint8_t id, uint8_t gpio, uint8_t adc) : BaseSensor(id), gpio(gpio), adc(adc) {};
+  GenericSensor(char const * name, uint8_t id, uint8_t gpio, uint8_t adc)
+      : BaseSensor(name,id),
+        gpio(gpio),
+        adc(adc)
+  {};
 
-  const uint8_t gpio;
-  const uint8_t adc;
+  uint8_t const gpio;
+  uint8_t const adc;
 };
 
 class DisplaySensor : public BaseSensor {
 public:
-  DisplaySensor(uint8_t id, uint8_t gpio_0, uint8_t gpio_1, uint8_t gpio_2, uint8_t gpio_3)
-      : BaseSensor(id), gpio_0(gpio_0), gpio_1(gpio_1), gpio_2(gpio_2), gpio_3(gpio_3) {};
+  DisplaySensor(char const * name, uint8_t id, uint8_t gpio_0, uint8_t gpio_1, uint8_t gpio_2, uint8_t gpio_3)
+      : BaseSensor(name, id),
+        gpio_0(gpio_0),
+        gpio_1(gpio_1),
+        gpio_2(gpio_2),
+        gpio_3(gpio_3)
+  {};
 
-  const uint8_t gpio_0;
-  const uint8_t gpio_1;
-  const uint8_t gpio_2;
-  const uint8_t gpio_3;
+  uint8_t const gpio_0;
+  uint8_t const gpio_1;
+  uint8_t const gpio_2;
+  uint8_t const gpio_3;
 };
 
 class AnalogSensor : public BaseSensor {
 public:
-  AnalogSensor(uint8_t id, uint8_t adc_0, uint8_t adc_1, uint8_t adc_2, uint8_t adc_3, uint8_t adc_4)
-      : BaseSensor(id), adc_0(adc_0), adc_1(adc_1), adc_2(adc_2), adc_3(adc_3), adc_4(adc_4) {};
+  AnalogSensor(char const * name, uint8_t id, uint8_t adc_0, uint8_t adc_1, uint8_t adc_2, uint8_t adc_3, uint8_t adc_4)
+      : BaseSensor(name, id),
+        adc_0(adc_0),
+        adc_1(adc_1),
+        adc_2(adc_2),
+        adc_3(adc_3),
+        adc_4(adc_4)
+  {};
 
-  const uint8_t adc_0 = A5;
-  const uint8_t adc_1 = A6;
-  const uint8_t adc_2 = A7;
-  const uint8_t adc_3 = A8;
-  const uint8_t adc_4 = A9;
+  uint8_t const adc_0;
+  uint8_t const adc_1;
+  uint8_t const adc_2;
+  uint8_t const adc_3;
+  uint8_t const adc_4;
 };
 
 enum class PinMode : uint8_t {
@@ -124,25 +143,34 @@ struct SensorDescription {
   } __attribute__((packed)) i2c;
   uint8_t descriptions[];
 
-  bool IsValid(unsigned length);
+  bool IsValid() const;
+  unsigned Length() const;
+
+  static constexpr unsigned const MAX_LENGTH = 256;
 } __attribute__((packed));
 
 static_assert(sizeof(SensorDescription) == 78, "Incorrect SensorDescription size should be 78B.");
 
 std::string ToString(SensorDescription const * const sensorDescription);
 
+void Init();
 void CommunicateWith(const BaseSensor & sensor);
+std::shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor);
 
-extern const GenericSensor SensorLeft;
-extern const GenericSensor SensorFront;
-extern const GenericSensor SensorRight;
-extern const GenericSensor SensorTop1;
-extern const GenericSensor SensorTop2;
+extern GenericSensor const SensorLeft;
+extern GenericSensor const SensorFront;
+extern GenericSensor const SensorRight;
+extern GenericSensor const SensorTop1;
+extern GenericSensor const SensorTop2;
 
-extern const DisplaySensor HMI;
+extern DisplaySensor const HMI;
 
-extern const AnalogSensor LineSensor;
+extern AnalogSensor const SensorLine;
 
-extern const BaseSensor BatterySensor;
+extern BaseSensor const SensorBattery;
+
+extern BaseSensor const * const SensorsAll[8];
+
+}
 
 #endif

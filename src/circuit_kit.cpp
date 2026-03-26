@@ -1,8 +1,13 @@
 #include <sstream>
 
-#include "sensors.h"
+#include "circuit_kit.h"
 #include "Wire.h"
 #include "CRC32.h"
+#include "at24c02.h"
+
+using namespace std;
+
+namespace ozobot::circuit_kit {
 
 std::string ToString(PinMode const mode) {
   switch(mode) {
@@ -43,23 +48,38 @@ std::string ToString(Pull const pull) {
   return "unknown";
 }
 
-bool SensorDescription::IsValid(unsigned const length) {
-  uint8_t * description_ptr = descriptions;
-  while(description_ptr < (reinterpret_cast<uint8_t *>(this) + length)) {
-    Description * const description = reinterpret_cast<Description *>(description_ptr);
+bool SensorDescription::IsValid() const {
+  uint8_t const * description_ptr = descriptions;
+  while(description_ptr < (reinterpret_cast<uint8_t const *>(this) + MAX_LENGTH)) {
+    Description const * const description = reinterpret_cast<Description const *>(description_ptr);
 
     if(description->type == DescriptionTypes::CRC32) {
       uint32_t CRC = 0;
       memcpy(&CRC, description->data, sizeof(CRC));
 
-      unsigned const binaryLength = description_ptr - reinterpret_cast<uint8_t *>(this);
-      uint32_t computedCRC = CRC32::calculate(reinterpret_cast<uint8_t *>(this), binaryLength);
+      unsigned const binaryLength = description_ptr - reinterpret_cast<uint8_t const *>(this);
+      uint32_t computedCRC = CRC32::calculate(reinterpret_cast<uint8_t const *>(this), binaryLength);
       return CRC == computedCRC;
     }
     description_ptr += description->length + sizeof(Description);
   }
 
   return false;
+}
+
+unsigned SensorDescription::Length() const {
+  uint8_t const * description_ptr = descriptions;
+  while(description_ptr < (reinterpret_cast<uint8_t const *>(this) + MAX_LENGTH)) {
+    Description const * const description = reinterpret_cast<Description const *>(description_ptr);
+
+    if(description->type == DescriptionTypes::CRC32) {
+      unsigned binaryLength = (description_ptr - reinterpret_cast<uint8_t const *>(this));
+      return description->length + sizeof(Description) + binaryLength;
+    }
+    description_ptr += description->length + sizeof(Description);
+  }
+
+  return 0;
 }
 
 std::string ToString(SensorDescription const * const sensorDescription) {
@@ -120,21 +140,63 @@ std::string ToString(SensorDescription const * const sensorDescription) {
   return stream.str();
 }
 
-void CommunicateWith(const BaseSensor & sensor) {
+void Init() {
+  /// Pull I2C multiplexer reset high to allow communication via it
+  pinMode(D5, OUTPUT);
+  digitalWrite(D5, HIGH);
+}
+
+void CommunicateWith(BaseSensor const & sensor) {
   static constexpr const uint8_t MULTIPLEXER_ADDRESS = 0b1110000;
   Wire.beginTransmission(MULTIPLEXER_ADDRESS);
   Wire.write(1 << sensor.id);
   Wire.endTransmission();
 }
 
-const GenericSensor SensorLeft(0, D0, A0);
-const GenericSensor SensorFront(1, D1, A1);
-const GenericSensor SensorRight(2, D2, A2);
-const GenericSensor SensorTop1(5, D4, A4);
-const GenericSensor SensorTop2(4, D3, A3);
+shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor) {
+  AT24C02 eprom(AT24C_ADDRESS_0);
 
-const DisplaySensor HMI(3, D6, D7, D8, D9);
+  uint8_t buffer[256];
+  SensorDescription const * const sensorDescription = reinterpret_cast<SensorDescription const *>(buffer);
+  unsigned const read = eprom.readBuffer(0, buffer, sizeof(buffer));
+  if(read != sizeof(buffer) || !sensorDescription->IsValid()) {
+    return {};
+  }
 
-const AnalogSensor LineSensor(6, A5, A6, A7, A8, A9);
+  unsigned const length = sensorDescription->Length();
+  uint8_t * memory = new uint8_t[length];
+  if(memory == nullptr) {
+    return {};
+  }
 
-const BaseSensor BatterySensor(7);
+  memcpy(memory, buffer, length);
+  return shared_ptr<SensorDescription>(
+    reinterpret_cast<SensorDescription *>(memory),
+    [&](auto pointer) { delete [] memory; }
+  );
+}
+
+GenericSensor const SensorLeft("sensor left", 0, D0, A0);
+GenericSensor const SensorFront("sensor front", 1, D1, A1);
+GenericSensor const SensorRight("sensor right", 2, D2, A2);
+GenericSensor const SensorTop1("sensor top 1", 5, D4, A4);
+GenericSensor const SensorTop2("sensor top 2", 4, D3, A3);
+
+DisplaySensor const HMI("human-machine interface", 3, D6, D7, D8, D9);
+
+AnalogSensor const SensorLine("sensor line", 6, A5, A6, A7, A8, A9);
+
+BaseSensor const SensorBattery("sensor battery", 7);
+
+BaseSensor const * const AllSensors[8] = {
+    &SensorLeft,
+    &SensorFront,
+    &SensorRight,
+    &SensorTop1,
+    &SensorTop2,
+    &HMI,
+    &SensorLine,
+    &SensorBattery,
+};
+
+}
