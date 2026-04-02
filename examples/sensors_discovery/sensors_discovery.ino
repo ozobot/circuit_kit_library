@@ -12,7 +12,7 @@ void setup() {
   pinMode(BUTTON, INPUT);
 
   delay(500);
-  for(BaseSensor const * sensor : AllSensors) {
+  for(BaseSensor const * sensor : SensorsAll) {
     CommunicateWith(*sensor);
     Serial.printf("%s: ", sensor->name);
 
