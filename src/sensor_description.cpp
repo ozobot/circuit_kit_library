@@ -3,7 +3,7 @@
 #include "Arduino.h"
 #include "CRC32.h"
 
-namespace ozobot::circuit_kit {
+namespace ozobot::drvkit {
 
 std::string ToString(PinMode const mode) {
   switch(mode) {

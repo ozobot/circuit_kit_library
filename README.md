@@ -1,4 +1,7 @@
-## Circuit kit library
+## DRVKit library
+
 ### Description
-HAL for the Ozobot circuit kit platform. 
-It defines structures and object for interacting with diverse sensor suite like proximity sensors, line following etc.
+
+HAL for the Ozobot DRVKit platform.
+
+It defines structures and objects for interacting with a diverse sensor suite, such as proximity sensors, line-following sensors, and related peripherals.

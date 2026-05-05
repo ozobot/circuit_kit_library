@@ -1,19 +1,18 @@
-#include "circuit_kit.h"
+#include "drvkit.h"
 #include "Wire.h"
 
-using namespace ozobot::circuit_kit;
+using namespace ozobot::drvkit;
 
 void setup() {
   Serial.begin();
   Wire.begin();
 
-  ozobot::circuit_kit::Init();
+  ozobot::drvkit::Init();
 
   pinMode(BUTTON, INPUT);
 
   delay(500);
   for(BaseSensor const * sensor : SensorsAll) {
-    CommunicateWith(*sensor);
     Serial.printf("%s: ", sensor->name);
 
     auto description = GetSensorDescription(*sensor);

@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 
-namespace ozobot::circuit_kit {
+namespace ozobot::drvkit {
 
 enum class PinMode : uint8_t {
   Digital = 0,

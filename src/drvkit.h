@@ -7,7 +7,7 @@
 #include "Arduino.h"
 #include "sensor_description.h"
 
-namespace ozobot::circuit_kit {
+namespace ozobot::drvkit {
 
 class BaseSensor {
 public:

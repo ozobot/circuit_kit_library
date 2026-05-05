@@ -1,14 +1,14 @@
-#ifdef ARDUINO_OZOBOT_CIRCUIT_KIT
+#ifdef ARDUINO_OZOBOT_DRVKIT
 
 #include <sstream>
 
-#include "circuit_kit.h"
+#include "drvkit.h"
 #include "Wire.h"
 #include "at24c02.h"
 
 using namespace std;
 
-namespace ozobot::circuit_kit {
+namespace ozobot::drvkit {
 
 void Init() {
   /// Pull I2C multiplexer reset high to allow communication via it
@@ -24,6 +24,7 @@ void CommunicateWith(BaseSensor const & sensor) {
 }
 
 shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor) {
+  CommunicateWith(sensor);
   AT24C02 eprom(AT24C_ADDRESS_0);
 
   uint8_t buffer[256];
