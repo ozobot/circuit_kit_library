@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Arduino.h"
+#include "Wire.h"
 #include "sensor_description.h"
 
 namespace ozobot::drvkit {
@@ -63,8 +64,24 @@ public:
   uint8_t const adc_4;
 };
 
-void Init();
-void CommunicateWith(const BaseSensor & sensor);
+template <typename... Sensors>
+void CommunicateWith(Sensors const & ... sensors) {
+  static constexpr const uint8_t MULTIPLEXER_ADDRESS = 0b1110000;
+
+  /// We need to convert the parameter pack to an array of pointers otherwise foreach loop will not work
+  BaseSensor const * base_sensors[] = {&sensors...};
+
+  /// Compound bitmask from individual sensors
+  uint8_t bitmask = 0;
+  for (BaseSensor const * sensor : base_sensors) {
+    bitmask |= 1 << sensor->id;
+  }
+
+  Wire.beginTransmission(MULTIPLEXER_ADDRESS);
+  Wire.write(bitmask);
+  Wire.endTransmission();
+}
+
 std::shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor);
 
 extern GenericSensor const SensorLeft;
@@ -80,6 +97,10 @@ extern AnalogSensor const SensorLine;
 extern BaseSensor const SensorBattery;
 
 extern BaseSensor const * const SensorsAll[8];
+
+inline void CommunicateWithAll() {
+  CommunicateWith(SensorLeft, SensorFront, SensorRight, SensorTop1, SensorTop2, HMI, SensorLine, SensorBattery);
+}
 
 }
 

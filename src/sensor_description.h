@@ -82,6 +82,8 @@ struct SensorDescription {
     uint32_t id;
     uint32_t revision;
   } __attribute__((packed)) board;
+  uint32_t features;
+  uint8_t reserved_2[16];
   GPIODescription gpio[2];
   struct {
     uint16_t address;
@@ -94,7 +96,7 @@ struct SensorDescription {
   static constexpr unsigned const MAX_LENGTH = 256;
 } __attribute__((packed));
 
-static_assert(sizeof(SensorDescription) == 78, "Incorrect SensorDescription size should be 78B.");
+static_assert(sizeof(SensorDescription) == 98, "Incorrect SensorDescription size should be 98B.");
 
 std::string ToString(SensorDescription const * const sensorDescription);
 

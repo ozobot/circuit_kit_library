@@ -10,19 +10,6 @@ using namespace std;
 
 namespace ozobot::drvkit {
 
-void Init() {
-  /// Pull I2C multiplexer reset high to allow communication via it
-  pinMode(D5, OUTPUT);
-  digitalWrite(D5, HIGH);
-}
-
-void CommunicateWith(BaseSensor const & sensor) {
-  static constexpr const uint8_t MULTIPLEXER_ADDRESS = 0b1110000;
-  Wire.beginTransmission(MULTIPLEXER_ADDRESS);
-  Wire.write(1 << sensor.id);
-  Wire.endTransmission();
-}
-
 shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor) {
   CommunicateWith(sensor);
   AT24C02 eprom(AT24C_ADDRESS_0);
