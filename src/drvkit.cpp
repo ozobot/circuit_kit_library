@@ -34,6 +34,30 @@ shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor) {
   );
 }
 
+void SetMotorLeft(int const duty) {
+  int const power = BoundInRange((duty * 255) / 100, -255, 255);
+
+  if(power >= 0) {
+    analogWrite(MOTOR_L_IN2, 0);
+    analogWrite(MOTOR_L_IN1, power);
+  } else {
+    analogWrite(MOTOR_L_IN1, 0);
+    analogWrite(MOTOR_L_IN2, -power);
+  }
+}
+
+void SetMotorRight(int const duty) {
+  int const power = BoundInRange((duty * 255) / 100, -255, 255);
+
+  if(power >= 0) {
+    analogWrite(MOTOR_R_IN2, 0);
+    analogWrite(MOTOR_R_IN1, power);
+  } else {
+    analogWrite(MOTOR_R_IN1, 0);
+    analogWrite(MOTOR_R_IN2, -power);
+  }
+}
+
 GenericSensor const SensorLeft("sensor left", 0, D0, A0);
 GenericSensor const SensorFront("sensor front", 1, D1, A1);
 GenericSensor const SensorRight("sensor right", 2, D2, A2);

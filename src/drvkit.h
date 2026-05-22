@@ -64,6 +64,11 @@ public:
   uint8_t const adc_4;
 };
 
+/**
+ * Enable communication with multiple sensors using I2C multiplexer.
+ * It should be called each time before communication with a sensor.
+ * @param sensors Sensors to communicate with
+ */
 template <typename... Sensors>
 void CommunicateWith(Sensors const & ... sensors) {
   static constexpr const uint8_t MULTIPLEXER_ADDRESS = 0b1110000;
@@ -81,6 +86,28 @@ void CommunicateWith(Sensors const & ... sensors) {
   Wire.write(bitmask);
   Wire.endTransmission();
 }
+
+/**
+ * Bound a value in range <min, max>
+ */
+template <class Type>
+inline Type BoundInRange(Type value, Type min, Type max) {
+  return value < min  ? min
+                      : value > max ? max
+                                    : value;
+}
+
+/**
+ * Set left motor power.
+ * @param duty Motor duty cycle in range <-100, 100>
+ */
+void SetMotorLeft(int duty);
+
+/**
+ * Set right motor power.
+ * @param duty Motor duty cycle in range <-100, 100>
+ */
+void SetMotorRight(int duty);
 
 std::shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor);
 
