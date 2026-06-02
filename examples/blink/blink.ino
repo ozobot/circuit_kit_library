@@ -12,15 +12,12 @@ using namespace ozobot::drvkit;
 Freenove_ESP32_WS2812 strip = Freenove_ESP32_WS2812(LEDS_COUNT, LEDS_PIN, CHANNEL);
 
 void setup() {
-  Serial.begin(9600);
   strip.begin();
 
   pinMode(BUTTON, INPUT);
 }
 
 void loop() {
-  Serial.printf("Test\r\n");
-
   /// Setup pixel 0 (we have only single LED) next color to low green (RGB)
   strip.setLedColorData(0, 0 , 30, 0);
   strip.show(); /// Write prepared colors to strip 

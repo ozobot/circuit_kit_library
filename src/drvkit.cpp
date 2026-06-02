@@ -34,24 +34,61 @@ shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor) {
   );
 }
 
-void SetMotorLeft(int const duty) {
+void Motors::begin() {
+  analogWriteFrequency(MOTOR_L_IN1, PWM_FREQUENCY_HZ);
+  analogWriteFrequency(MOTOR_L_IN2, PWM_FREQUENCY_HZ);
+  analogWriteFrequency(MOTOR_R_IN1, PWM_FREQUENCY_HZ);
+  analogWriteFrequency(MOTOR_R_IN2, PWM_FREQUENCY_HZ);
+}
+
+Motors & Motors::GetInstance() {
+  return motors_;
+}
+
+void Motors::SetDuty(Position const position, int const duty) {
+  if(position == Both) {
+    SetDutyLeft(duty);
+    SetDutyRight(duty);
+  } else if(position == Left) {
+    SetDutyLeft(duty);
+  } else if(position == Right) {
+    SetDutyRight(duty);
+  }
+}
+
+void Motors::Brake(Position const position) {
+  if(position == Both) {
+    analogWrite(MOTOR_L_IN2, ANALOG_WRITE_MAX);
+    analogWrite(MOTOR_L_IN1, ANALOG_WRITE_MAX);
+    analogWrite(MOTOR_R_IN2, ANALOG_WRITE_MAX);
+    analogWrite(MOTOR_R_IN1, ANALOG_WRITE_MAX);
+  } else if(position == Left) {
+    analogWrite(MOTOR_L_IN2, ANALOG_WRITE_MAX);
+    analogWrite(MOTOR_L_IN1, ANALOG_WRITE_MAX);
+  } else if(position == Right) {
+    analogWrite(MOTOR_R_IN2, ANALOG_WRITE_MAX);
+    analogWrite(MOTOR_R_IN1, ANALOG_WRITE_MAX);
+  }
+}
+
+void Motors::SetDutyLeft(int const duty) {
   int const power = BoundInRange((duty * 255) / 100, -255, 255);
 
   if(power >= 0) {
-    analogWrite(MOTOR_L_IN2, 0);
     analogWrite(MOTOR_L_IN1, power);
+    analogWrite(MOTOR_L_IN2, 0);
   } else {
     analogWrite(MOTOR_L_IN1, 0);
     analogWrite(MOTOR_L_IN2, -power);
   }
 }
 
-void SetMotorRight(int const duty) {
+void Motors::SetDutyRight(int const duty) {
   int const power = BoundInRange((duty * 255) / 100, -255, 255);
 
   if(power >= 0) {
-    analogWrite(MOTOR_R_IN2, 0);
     analogWrite(MOTOR_R_IN1, power);
+    analogWrite(MOTOR_R_IN2, 0);
   } else {
     analogWrite(MOTOR_R_IN1, 0);
     analogWrite(MOTOR_R_IN2, -power);
@@ -80,6 +117,9 @@ BaseSensor const * const SensorsAll[8] = {
     &SensorLine,
     &SensorBattery,
 };
+
+Motors Motors::motors_;
+Motors & MotorsChassis = Motors::GetInstance();
 
 }
 

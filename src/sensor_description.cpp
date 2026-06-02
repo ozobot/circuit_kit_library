@@ -5,17 +5,6 @@
 
 namespace ozobot::drvkit {
 
-std::string ToString(PinMode const mode) {
-  switch(mode) {
-  case PinMode::Digital:
-    return "digital";
-  case PinMode::Analog:
-    return "analog";
-  }
-
-  return "unknown";
-}
-
 std::string ToString(Direction const direction) {
   switch(direction) {
   case Direction::None:
@@ -88,46 +77,56 @@ std::string ToString(SensorDescription const * const sensorDescription) {
   std::ostringstream stream;
   stream << "Board id " << sensorDescription->board.id << " revision " << sensorDescription->board.revision << std::endl;
 
-  for(unsigned index = 0; index < 2; index++) {
-    stream << "GPIO " << index << ":" << std::endl;
-    stream << "\t mode - " << ToString(sensorDescription->gpio[index].mode) << std::endl;
-    stream << "\t direction - " << ToString(sensorDescription->gpio[index].direction) << std::endl;
-    stream << "\t pull - " << ToString(sensorDescription->gpio[index].pull) << std::endl;
-    stream << "\t inverted - " << (sensorDescription->gpio[index].inverted ? "inverted" : "not inverted") << std::endl;
-    if(!sensorDescription->gpio[index].rangeValid) {
-      stream << "\t range invalid" << std::endl;
-    } else {
-      stream << "\t range: " << std::endl;
-      stream << "\t\t: raw - min " << sensorDescription->gpio[index].range.raw.min << " max " << sensorDescription->gpio[index].range.raw.max << std::endl;
-      stream << "\t\t: output - min " << sensorDescription->gpio[index].range.output.min << " max " << sensorDescription->gpio[index].range.output.max << std::endl;
-      stream << "\t\t: unit - " << sensorDescription->gpio[index].range.unit << std::endl;
-    }
-  }
-
   bool foundCRC = false;
   uint8_t const * description_ptr = sensorDescription->descriptions;
   while(!foundCRC) {
     Description const * const description = reinterpret_cast<Description const *>(description_ptr);
 
     switch(description->type) {
-    case DescriptionTypes::CRC32:
-    {
-      uint32_t CRC = 0;
-      memcpy(&CRC, description->data, sizeof(CRC));
-      stream << "CRC: 0x"<< std::hex << CRC << std::endl;
-      foundCRC = true;
-      break;
-    }
-    case DescriptionTypes::String:
-      stream << "String: ";
-      stream.write(reinterpret_cast<char const *>(description->data), description->length);
-      stream << std::endl;
-      break;
-    case DescriptionTypes::BoardName:
-      stream << "Board name: ";
-      stream.write(reinterpret_cast<char const *>(description->data), description->length);
-      stream << std::endl;
-      break;
+      case DescriptionTypes::CRC32:
+      {
+        uint32_t CRC = 0;
+        memcpy(&CRC, description->data, sizeof(CRC));
+        stream << "CRC: 0x"<< std::hex << CRC << std::endl;
+        foundCRC = true;
+        break;
+      }
+      case DescriptionTypes::String:
+        stream << "String: ";
+        stream.write(reinterpret_cast<char const *>(description->data), description->length);
+        stream << std::endl;
+        break;
+      case DescriptionTypes::BoardName:
+        stream << "Board name: ";
+        stream.write(reinterpret_cast<char const *>(description->data), description->length);
+        stream << std::endl;
+        break;
+      case DescriptionTypes::GPIO:
+      {
+        GPIODescription const * const gpio = reinterpret_cast<GPIODescription const *>(description->data);
+        stream << "GPIO " << gpio->id << ":" << std::endl;
+        stream << "\t direction - " << ToString(gpio->direction) << std::endl;
+        stream << "\t pull - " << ToString(gpio->pull) << std::endl;
+        stream << "\t inverted - " << (gpio->inverted ? "inverted" : "not inverted") << std::endl;
+      }
+        break;
+      case DescriptionTypes::ADC:
+      {
+        ADCDescription const * const adc = reinterpret_cast<ADCDescription const *>(description->data);
+        stream << "ADC " << adc->id << ":" << std::endl;
+        stream << "\t direction - " << ToString(adc->direction) << std::endl;
+        stream << "\t pull - " << ToString(adc->pull) << std::endl;
+        stream << "\t inverted - " << (adc->inverted ? "inverted" : "not inverted") << std::endl;
+        if(!adc->rangeValid) {
+          stream << "\t range invalid" << std::endl;
+        } else {
+          stream << "\t range: " << std::endl;
+          stream << "\t\t: raw - min " << adc->range.raw.min << " max " << adc->range.raw.max << std::endl;
+          stream << "\t\t: output - min " << adc->range.output.min << " max " << adc->range.output.max << std::endl;
+          stream << "\t\t: unit - " << adc->range.unit << std::endl;
+        }
+      }
+        break;
     }
 
     description_ptr += description->length + sizeof(Description);

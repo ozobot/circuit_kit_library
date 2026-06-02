@@ -97,17 +97,40 @@ inline Type BoundInRange(Type value, Type min, Type max) {
                                     : value;
 }
 
-/**
- * Set left motor power.
- * @param duty Motor duty cycle in range <-100, 100>
- */
-void SetMotorLeft(int duty);
+class Motors {
+public:
+  enum Position {
+    Left,
+    Right,
+    Both
+  };
 
-/**
- * Set right motor power.
- * @param duty Motor duty cycle in range <-100, 100>
- */
-void SetMotorRight(int duty);
+  Motors(Motors const &) = delete;
+  void operator=(Motors const &) = delete;
+
+  void begin();
+  static Motors & GetInstance();
+  void SetDuty(Position position, int duty);
+  void Brake(Position position);
+protected:
+  Motors() {};
+
+  /**
+    * Set left motor duty.
+    * @param duty Motor duty cycle in range <-100, 100>
+    */
+  void SetDutyLeft(int duty);
+  /**
+    * Set right motor duty.
+    * @param duty Motor duty cycle in range <-100, 100>
+    */
+  void SetDutyRight(int duty);
+private:
+  static constexpr unsigned const ANALOG_WRITE_MAX = 255;
+  static constexpr unsigned const PWM_FREQUENCY_HZ = 1000;
+
+  static Motors motors_;
+};
 
 std::shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor);
 
@@ -124,6 +147,8 @@ extern AnalogSensor const SensorLine;
 extern BaseSensor const SensorBattery;
 
 extern BaseSensor const * const SensorsAll[8];
+
+extern Motors & MotorsChassis;
 
 inline void CommunicateWithAll() {
   CommunicateWith(SensorLeft, SensorFront, SensorRight, SensorTop1, SensorTop2, HMI, SensorLine, SensorBattery);

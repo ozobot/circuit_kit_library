@@ -7,13 +7,6 @@
 
 namespace ozobot::drvkit {
 
-enum class PinMode : uint8_t {
-  Digital = 0,
-  Analog = 1,
-};
-
-std::string ToString(PinMode const mode);
-
 enum class Direction : uint8_t {
   None = 0,
   Input = 1,
@@ -32,18 +25,38 @@ enum class Pull : uint8_t {
 std::string ToString(Pull const pull);
 
 struct GPIODescription {
+  union {
+    struct {
+      uint8_t id : 3;
+      Direction direction : 2;
+      Pull pull : 2;
+      uint8_t inverted : 1;
+    } __attribute__((packed));
+    uint8_t byte;
+  } __attribute__((packed));
+} __attribute__((packed));
+
+static_assert(sizeof(GPIODescription) == 1, "Incorrect GPIODescription size should be 32B.");
+
+struct ADCDescription {
   static constexpr const unsigned RANGE_UNIT_MAX_LENGTH = 8;
 
   union {
     struct {
-      PinMode mode : 1;
+      uint8_t id : 3;
       Direction direction : 2;
       Pull pull : 2;
       uint8_t inverted : 1;
-      uint8_t rangeValid : 1;
-      uint8_t reserved : 1;
     } __attribute__((packed));
-    uint8_t byte;
+    uint8_t low;
+  } __attribute__((packed));
+
+  union {
+    struct {
+      uint8_t rangeValid : 1;
+      uint8_t reserved : 7;
+    } __attribute__((packed));
+    uint8_t high;
   } __attribute__((packed));
 
   struct {
@@ -57,16 +70,16 @@ struct GPIODescription {
     } output;
     char unit[RANGE_UNIT_MAX_LENGTH];
   } __attribute__((packed)) range;
-
-  uint8_t reserved_2[7];
 } __attribute__((packed));
 
-static_assert(sizeof(GPIODescription) == 32, "Incorrect GPIODescription size should be 32B.");
+static_assert(sizeof(ADCDescription) == 26, "Incorrect ADCDescription size should be 26B.");
 
 enum DescriptionTypes {
   CRC32 = 0,
   BoardName = 1,
   String = 2,
+  GPIO = 3,
+  ADC = 4,
 };
 
 struct Description {
@@ -80,11 +93,9 @@ struct SensorDescription {
   uint8_t reserved[3];
   struct {
     uint32_t id;
-    uint32_t revision;
+    uint16_t revision;
   } __attribute__((packed)) board;
   uint32_t features;
-  uint8_t reserved_2[16];
-  GPIODescription gpio[2];
   struct {
     uint16_t address;
   } __attribute__((packed)) i2c;
@@ -96,7 +107,7 @@ struct SensorDescription {
   static constexpr unsigned const MAX_LENGTH = 256;
 } __attribute__((packed));
 
-static_assert(sizeof(SensorDescription) == 98, "Incorrect SensorDescription size should be 98B.");
+static_assert(sizeof(SensorDescription) == 16, "Incorrect SensorDescription size should be 16B.");
 
 std::string ToString(SensorDescription const * const sensorDescription);
 
