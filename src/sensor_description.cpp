@@ -101,6 +101,15 @@ std::string ToString(SensorDescription const * const sensorDescription) {
         stream.write(reinterpret_cast<char const *>(description->data), description->length);
         stream << std::endl;
         break;
+      case DescriptionTypes::Range:
+      {
+        RangeDescription const * const range = reinterpret_cast<RangeDescription const *>(description->data);
+        stream << "Range " << static_cast<int>(range->id) << ":" << std::endl;
+        stream << "\t raw - min " << range->raw.min << " max " << range->raw.max << std::endl;
+        stream << "\t output - min " << range->output.min << " max " << range->output.max << std::endl;
+        stream << "\t unit - " << range->unit << std::endl;
+      }
+        break;
       case DescriptionTypes::GPIO:
       {
         GPIODescription const * const gpio = reinterpret_cast<GPIODescription const *>(description->data);
@@ -117,14 +126,7 @@ std::string ToString(SensorDescription const * const sensorDescription) {
         stream << "\t direction - " << ToString(adc->direction) << std::endl;
         stream << "\t pull - " << ToString(adc->pull) << std::endl;
         stream << "\t inverted - " << (adc->inverted ? "inverted" : "not inverted") << std::endl;
-        if(!adc->rangeValid) {
-          stream << "\t range invalid" << std::endl;
-        } else {
-          stream << "\t range: " << std::endl;
-          stream << "\t\t: raw - min " << adc->range.raw.min << " max " << adc->range.raw.max << std::endl;
-          stream << "\t\t: output - min " << adc->range.output.min << " max " << adc->range.output.max << std::endl;
-          stream << "\t\t: unit - " << adc->range.unit << std::endl;
-        }
+        stream << "\t range reference " << (adc->rangeReference.valid ? "valid" : "invalid") << " id: " << adc->rangeReference.id << std::endl;
       }
         break;
     }

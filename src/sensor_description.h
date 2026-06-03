@@ -34,13 +34,29 @@ struct GPIODescription {
     } __attribute__((packed));
     uint8_t byte;
   } __attribute__((packed));
+  uint8_t description[];
 } __attribute__((packed));
 
 static_assert(sizeof(GPIODescription) == 1, "Incorrect GPIODescription size should be 32B.");
 
-struct ADCDescription {
+struct RangeDescription {
   static constexpr const unsigned RANGE_UNIT_MAX_LENGTH = 8;
 
+  uint8_t id;
+  struct {
+    uint32_t min;
+    uint32_t max;
+  } raw;
+  struct {
+    int32_t min;
+    int32_t max;
+  } output;
+  char unit[RANGE_UNIT_MAX_LENGTH];
+} __attribute__((packed));
+
+static_assert(sizeof(RangeDescription) == 25, "Incorrect Range size should be 25B.");
+
+struct ADCDescription {
   union {
     struct {
       uint8_t id : 3;
@@ -48,45 +64,37 @@ struct ADCDescription {
       Pull pull : 2;
       uint8_t inverted : 1;
     } __attribute__((packed));
-    uint8_t low;
+    uint8_t byte;
   } __attribute__((packed));
 
   union {
     struct {
-      uint8_t rangeValid : 1;
-      uint8_t reserved : 7;
+      uint8_t id : 7;
+      uint8_t valid : 1;
     } __attribute__((packed));
-    uint8_t high;
-  } __attribute__((packed));
-
-  struct {
-    struct {
-      uint32_t min;
-      uint32_t max;
-    } raw;
-    struct {
-      int32_t min;
-      int32_t max;
-    } output;
-    char unit[RANGE_UNIT_MAX_LENGTH];
-  } __attribute__((packed)) range;
+    uint8_t byte;
+  } rangeReference __attribute__((packed));
+  uint8_t description[];
 } __attribute__((packed));
 
-static_assert(sizeof(ADCDescription) == 26, "Incorrect ADCDescription size should be 26B.");
+static_assert(sizeof(ADCDescription) == 2, "Incorrect ADCDescription size should be 2B.");
 
-enum DescriptionTypes {
+enum class DescriptionTypes : uint8_t {
   CRC32 = 0,
   BoardName = 1,
   String = 2,
   GPIO = 3,
   ADC = 4,
+  Range = 5,
 };
 
 struct Description {
   uint8_t length;
-  uint8_t type;
+  DescriptionTypes type;
   uint8_t data[];
 } __attribute__((packed));
+
+static_assert(sizeof(Description) == 2, "Incorrect Description size should be 2B.");
 
 struct SensorDescription {
   uint8_t id;
