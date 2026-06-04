@@ -113,20 +113,31 @@ std::string ToString(SensorDescription const * const sensorDescription) {
       case DescriptionTypes::GPIO:
       {
         GPIODescription const * const gpio = reinterpret_cast<GPIODescription const *>(description->data);
-        stream << "GPIO " << gpio->id << ":" << std::endl;
+        stream << "GPIO " << (unsigned) gpio->id << ":" << std::endl;
         stream << "\t direction - " << ToString(gpio->direction) << std::endl;
         stream << "\t pull - " << ToString(gpio->pull) << std::endl;
         stream << "\t inverted - " << (gpio->inverted ? "inverted" : "not inverted") << std::endl;
+        if(description->length > sizeof(GPIODescription)) {
+          stream << "\t description: ";
+          stream.write(reinterpret_cast<char const *>(gpio->description), description->length - sizeof(GPIODescription));
+          stream << std::endl;
+        }
       }
         break;
       case DescriptionTypes::ADC:
       {
         ADCDescription const * const adc = reinterpret_cast<ADCDescription const *>(description->data);
-        stream << "ADC " << adc->id << ":" << std::endl;
-        stream << "\t direction - " << ToString(adc->direction) << std::endl;
-        stream << "\t pull - " << ToString(adc->pull) << std::endl;
-        stream << "\t inverted - " << (adc->inverted ? "inverted" : "not inverted") << std::endl;
-        stream << "\t range reference " << (adc->rangeReference.valid ? "valid" : "invalid") << " id: " << adc->rangeReference.id << std::endl;
+        stream << "ADC " << (unsigned) adc->id << ":" << std::endl;
+        if(adc->range_reference_valid) {
+          stream << "\t range reference id: " << (unsigned) adc->range_reference << std::endl;
+        } else {
+          stream << "\t range reference not set" << std::endl;
+        }
+        if(description->length > sizeof(ADCDescription)) {
+          stream << "\t description: ";
+          stream.write(reinterpret_cast<char const *>(adc->description), description->length - sizeof(ADCDescription));
+          stream << std::endl;
+        }
       }
         break;
     }

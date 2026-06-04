@@ -60,24 +60,17 @@ struct ADCDescription {
   union {
     struct {
       uint8_t id : 3;
-      Direction direction : 2;
-      Pull pull : 2;
-      uint8_t inverted : 1;
+      uint8_t range_reference_valid : 1;
+      uint8_t range_reference : 3;
+      uint8_t reserved : 1;
     } __attribute__((packed));
     uint8_t byte;
   } __attribute__((packed));
 
-  union {
-    struct {
-      uint8_t id : 7;
-      uint8_t valid : 1;
-    } __attribute__((packed));
-    uint8_t byte;
-  } rangeReference __attribute__((packed));
   uint8_t description[];
 } __attribute__((packed));
 
-static_assert(sizeof(ADCDescription) == 2, "Incorrect ADCDescription size should be 2B.");
+static_assert(sizeof(ADCDescription) == 1, "Incorrect ADCDescription size should be 1B.");
 
 enum class DescriptionTypes : uint8_t {
   CRC32 = 0,
