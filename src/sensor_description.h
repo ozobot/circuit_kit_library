@@ -52,6 +52,7 @@ struct RangeDescription {
     int32_t max;
   } output;
   char unit[RANGE_UNIT_MAX_LENGTH];
+  uint8_t description[];
 } __attribute__((packed));
 
 static_assert(sizeof(RangeDescription) == 25, "Incorrect Range size should be 25B.");
@@ -72,6 +73,14 @@ struct ADCDescription {
 
 static_assert(sizeof(ADCDescription) == 1, "Incorrect ADCDescription size should be 1B.");
 
+struct I2CDescription {
+  uint8_t id;
+  uint8_t address;
+  uint8_t description[];
+} __attribute__((packed));
+
+static_assert(sizeof(I2CDescription) == 2, "Incorrect I2CDescription size should be 1B.");
+
 enum class DescriptionTypes : uint8_t {
   CRC32 = 0,
   BoardName = 1,
@@ -79,6 +88,7 @@ enum class DescriptionTypes : uint8_t {
   GPIO = 3,
   ADC = 4,
   Range = 5,
+  I2C = 6,
 };
 
 struct Description {
@@ -90,16 +100,13 @@ struct Description {
 static_assert(sizeof(Description) == 2, "Incorrect Description size should be 2B.");
 
 struct SensorDescription {
-  uint8_t id;
+  uint8_t structVersion;
   uint8_t reserved[3];
   struct {
     uint32_t id;
     uint16_t revision;
   } __attribute__((packed)) board;
   uint32_t features;
-  struct {
-    uint16_t address;
-  } __attribute__((packed)) i2c;
   uint8_t descriptions[];
 
   bool IsValid() const;
@@ -108,7 +115,7 @@ struct SensorDescription {
   static constexpr unsigned const MAX_LENGTH = 256;
 } __attribute__((packed));
 
-static_assert(sizeof(SensorDescription) == 16, "Incorrect SensorDescription size should be 16B.");
+static_assert(sizeof(SensorDescription) == 14, "Incorrect SensorDescription size should be 16B.");
 
 std::string ToString(SensorDescription const * const sensorDescription);
 

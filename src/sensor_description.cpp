@@ -68,9 +68,9 @@ unsigned SensorDescription::Length() const {
 }
 
 std::string ToString(SensorDescription const * const sensorDescription) {
-  if(sensorDescription->id != 0) {
+  if(sensorDescription->structVersion != 0) {
     std::ostringstream stream;
-    stream << "Unsupported struct type " << (int) sensorDescription->id << std::endl;
+    stream << "Unsupported struct type " << (int) sensorDescription->structVersion << std::endl;
     return stream.str();
   }
 
@@ -136,6 +136,18 @@ std::string ToString(SensorDescription const * const sensorDescription) {
         if(description->length > sizeof(ADCDescription)) {
           stream << "\t description: ";
           stream.write(reinterpret_cast<char const *>(adc->description), description->length - sizeof(ADCDescription));
+          stream << std::endl;
+        }
+      }
+        break;
+      case DescriptionTypes::I2C:
+      {
+        I2CDescription const *const i2c = reinterpret_cast<I2CDescription const *>(description->data);
+        stream << "I2C " << (unsigned) i2c->id << ":" << std::endl;
+        stream << "\t address: 0x" << std::hex << (unsigned) i2c->address << std::endl;
+        if (description->length > sizeof(I2CDescription)) {
+          stream << "\t description: ";
+          stream.write(reinterpret_cast<char const *>(i2c->description), description->length - sizeof(I2CDescription));
           stream << std::endl;
         }
       }
