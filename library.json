@@ -1,6 +1,6 @@
 {
   "name": "drvkit_library",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "HAL for the Ozobot DRVKit platform.",
   "keywords": "Ozobot, DRVKit, sensors, HAL",
   "repository": {
