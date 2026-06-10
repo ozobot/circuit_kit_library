@@ -7,9 +7,6 @@ void setup() {
   Serial.begin();
   Wire.begin();
 
-  pinMode(BUTTON, INPUT);
-
-  delay(500);
   for(BaseSensor const * sensor : SensorsAll) {
     Serial.printf("%s: ", sensor->name);
 
