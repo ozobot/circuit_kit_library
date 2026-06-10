@@ -7,8 +7,6 @@ void setup() {
   Serial.begin();
   Wire.begin();
 
-  ozobot::drvkit::Init();
-
   pinMode(BUTTON, INPUT);
 
   delay(500);
