@@ -34,29 +34,69 @@ shared_ptr<SensorDescription> GetSensorDescription(BaseSensor const &sensor) {
   );
 }
 
-void SetMotorLeft(int const duty) {
-  int const power = BoundInRange((duty * 255) / 100, -255, 255);
+void Motors::SetDuty(Side const side, int const duty) {
+  int const power = BoundInRange((duty * MAX_ANALOG_WRITE_VALUE) / 100, -MAX_ANALOG_WRITE_VALUE, MAX_ANALOG_WRITE_VALUE);
 
-  if(power >= 0) {
-    analogWrite(MOTOR_L_IN2, 0);
-    analogWrite(MOTOR_L_IN1, power);
-  } else {
-    analogWrite(MOTOR_L_IN1, 0);
-    analogWrite(MOTOR_L_IN2, -power);
+  switch(side) {
+    case Left:
+    {
+      if(power >= 0) {
+        analogWrite(MOTOR_L_IN1, power);
+        analogWrite(MOTOR_L_IN2, 0);
+      } else {
+        analogWrite(MOTOR_L_IN1, 0);
+        analogWrite(MOTOR_L_IN2, -power);
+      }
+    }
+      break;
+    case Right:
+    {
+      if(power >= 0) {
+        analogWrite(MOTOR_R_IN1, power);
+        analogWrite(MOTOR_R_IN2, 0);
+      } else {
+        analogWrite(MOTOR_R_IN1, 0);
+        analogWrite(MOTOR_R_IN2, -power);
+      }
+    }
+      break;
+    case Both:
+    {
+      SetDuty(Left, duty);
+      SetDuty(Right, duty);
+    }
+      break;
   }
 }
 
-void SetMotorRight(int const duty) {
-  int const power = BoundInRange((duty * 255) / 100, -255, 255);
-
-  if(power >= 0) {
-    analogWrite(MOTOR_R_IN2, 0);
-    analogWrite(MOTOR_R_IN1, power);
-  } else {
-    analogWrite(MOTOR_R_IN1, 0);
-    analogWrite(MOTOR_R_IN2, -power);
+void Motors::Brake(Side const side) {
+  switch(side) {
+    case Left:
+    {
+      analogWrite(MOTOR_L_IN1, MAX_ANALOG_WRITE_VALUE);
+      analogWrite(MOTOR_L_IN2, MAX_ANALOG_WRITE_VALUE);
+    }
+      break;
+    case Right:
+    {
+      analogWrite(MOTOR_R_IN1, MAX_ANALOG_WRITE_VALUE);
+      analogWrite(MOTOR_R_IN2, MAX_ANALOG_WRITE_VALUE);
+    }
+      break;
+    case Both:
+    {
+      Brake(Left);
+      Brake(Right);
+    }
+      break;
   }
 }
+
+Motors & Motors::GetInstance() {
+  return instance_;
+}
+
+Motors Motors::instance_;
 
 GenericSensor const SensorLeft("sensor left", 0, D0, A0);
 GenericSensor const SensorFront("sensor front", 1, D1, A1);
@@ -80,6 +120,8 @@ BaseSensor const * const SensorsAll[8] = {
     &SensorLine,
     &SensorBattery,
 };
+
+Motors & ChassisMotors = Motors::GetInstance();
 
 }
 
