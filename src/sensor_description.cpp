@@ -79,30 +79,14 @@ unsigned SensorDescription::Length() const {
 }
 
 std::string ToString(SensorDescription const * const sensorDescription) {
-  if(sensorDescription->id != 0) {
+  if(sensorDescription->struct_version != 0) {
     std::ostringstream stream;
-    stream << "Unsupported struct type " << (int) sensorDescription->id << std::endl;
+    stream << "Unsupported struct type " << (int) sensorDescription->struct_version << std::endl;
     return stream.str();
   }
 
   std::ostringstream stream;
   stream << "Board id " << sensorDescription->board.id << " revision " << sensorDescription->board.revision << std::endl;
-
-  for(unsigned index = 0; index < 2; index++) {
-    stream << "GPIO " << index << ":" << std::endl;
-    stream << "\t mode - " << ToString(sensorDescription->gpio[index].mode) << std::endl;
-    stream << "\t direction - " << ToString(sensorDescription->gpio[index].direction) << std::endl;
-    stream << "\t pull - " << ToString(sensorDescription->gpio[index].pull) << std::endl;
-    stream << "\t inverted - " << (sensorDescription->gpio[index].inverted ? "inverted" : "not inverted") << std::endl;
-    if(!sensorDescription->gpio[index].rangeValid) {
-      stream << "\t range invalid" << std::endl;
-    } else {
-      stream << "\t range: " << std::endl;
-      stream << "\t\t: raw - min " << sensorDescription->gpio[index].range.raw.min << " max " << sensorDescription->gpio[index].range.raw.max << std::endl;
-      stream << "\t\t: output - min " << sensorDescription->gpio[index].range.output.min << " max " << sensorDescription->gpio[index].range.output.max << std::endl;
-      stream << "\t\t: unit - " << sensorDescription->gpio[index].range.unit << std::endl;
-    }
-  }
 
   bool foundCRC = false;
   uint8_t const * description_ptr = sensorDescription->descriptions;
@@ -128,7 +112,64 @@ std::string ToString(SensorDescription const * const sensorDescription) {
       stream.write(reinterpret_cast<char const *>(description->data), description->length);
       stream << std::endl;
       break;
-    }
+      case DescriptionTypes::GPIO:
+      {
+        GPIODescription const * gpio = reinterpret_cast<GPIODescription const *>(description->data);
+        stream << "GPIO id " << (int)gpio->id
+               << " direction " << ToString(gpio->direction)
+               << " pull " << ToString(gpio->pull)
+               << " inverted " << (gpio->inverted ? "true" : "false");
+        unsigned const desc_len = description->length - sizeof(GPIODescription);
+        if(desc_len > 0) {
+          stream << " description \"";
+          stream.write(reinterpret_cast<char const *>(gpio->description), desc_len);
+          stream << "\"";
+        }
+        stream << std::endl;
+        break;
+      }
+      case DescriptionTypes::ADC:
+      {
+        ADCDescription const * adc = reinterpret_cast<ADCDescription const *>(description->data);
+        stream << "ADC id " << (int)adc->id
+               << " range_reference_valid " << (adc->range_reference_valid ? "true" : "false")
+               << " range_reference " << (int)adc->range_reference;
+        unsigned const desc_len = description->length - sizeof(ADCDescription);
+        if(desc_len > 0) {
+          stream << " description \"";
+          stream.write(reinterpret_cast<char const *>(adc->description), desc_len);
+          stream << "\"";
+        }
+        stream << std::endl;
+        break;
+      }
+      case DescriptionTypes::Range:
+      {
+        RangeDescription const * range = reinterpret_cast<RangeDescription const *>(description->data);
+        stream << "Range id " << (int)range->id
+               << " raw [" << range->raw.min << ", " << range->raw.max << "]"
+               << " output [" << range->output.min << ", " << range->output.max << "]"
+               << " unit \"";
+        stream.write(range->unit, RangeDescription::RANGE_UNIT_MAX_LENGTH);
+        stream << "\"";
+        unsigned const desc_len = description->length - sizeof(RangeDescription);
+        if(desc_len > 0) {
+          stream << " description \"";
+          stream.write(reinterpret_cast<char const *>(range->description), desc_len);
+          stream << "\"";
+        }
+        stream << std::endl;
+        break;
+      }
+      case DescriptionTypes::I2C:
+      {
+        I2CDescription const * i2c = reinterpret_cast<I2CDescription const *>(description->data);
+        stream << "I2C id " << (int)i2c->id
+               << " address 0x" << std::hex << (int)i2c->address << std::dec
+               << std::endl;
+        break;
+      }
+      }
 
     description_ptr += description->length + sizeof(Description);
   }
